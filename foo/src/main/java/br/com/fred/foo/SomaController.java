@@ -1,19 +1,36 @@
 package br.com.fred.foo;
 
-import java.util.concurrent.atomic.AtomicLong;
-
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.fred.foo.exception.UnsuportedMathOperationException;
+
 @RestController
-public class GreetingController {
-	private static final String template = "Hello, %s!";
+public class SomaController {
 	
-	private final AtomicLong counter = new AtomicLong();
+	@RequestMapping(value = "/sum/{numberOne}/{numberTwo}", method = RequestMethod.GET)
+	public Double sum(@PathVariable("numberOne") String numberOne, @PathVariable("numberTwo") String numberTwo) throws Exception {
+		if(!isNumeric(numberOne) || !isNumeric(numberTwo)) {
+			throw new UnsuportedMathOperationException("Favor defina um valor numérico! ");
+		}
+		
+		Double sum = convertToDouble(numberOne) + convertToDouble(numberTwo);
+		
+		return sum;
+	}
 	
-	@RequestMapping("/greeting")
-	public Greeting greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
-		return new Greeting(counter.incrementAndGet(), String.format(template, name));
+	private Double convertToDouble(String numero) {
+		if(numero == null) return 0D;
+		String number = numero.replace(",", ".");
+		if(isNumeric(numero)) return Double.parseDouble(number);
+		return 0D;
+	}
+
+	private boolean isNumeric(String numero) {
+		if(numero == null) return false;
+		String number = numero.replace(",", ".");
+		return number.matches("[-+]?[0-9]*\\.?[0-9]+");
 	}
 }
